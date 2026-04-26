@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from heap_file import export_to_heap, get_heap_metadata, count_pages
 from external_hashing import external_hash_group_by
-from external_file import external_sort
+from external_sort import external_sort
 
 def setup_data():
     """Exporta CSVs a heap files si no existen."""
