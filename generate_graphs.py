@@ -5,22 +5,22 @@ from pathlib import Path
 
 HASHING_DATA = {
     'buffer_sizes_kb': [64, 128, 256],      # Buffer Size (KB)
-    'tiempo_total': [73.0640, 72.8278, 69.7770],  # Total Time (s) - DATOS REALES
-    'tiempo_fase1': [70.2067, 67.5491, 63.7339],  # Time Phase 1 (s)
-    'tiempo_fase2': [2.8573, 5.2787, 6.0431],     # Time Phase 2 (s)
-    'io_total': [7850, 7866, 7896],               # I/O Total (pages) - DATOS REALES
-    'particiones': [15, 31, 63],                  # Partitions (k = B-1)
+    'tiempo_total': [1.9502, 1.9066, 1.8268],     # Total Time (s)
+    'tiempo_fase1': [1.5506, 1.5234, 1.4756],      # Time Phase 1 (s)
+    'tiempo_fase2': [0.3996, 0.3833, 0.3512],      # Time Phase 2 (s)
+    'io_total': [14226, 14242, 14278],             # I/O Total (pages)
+    'particiones': [15, 31, 63],                   # Partitions (k = B-1)
 }
 
 # DATOS DE TABLA: EXTERNAL SORTING
 
 SORTING_DATA = {
     'buffer_sizes_kb': [64, 128, 256],      # Buffer Size (KB)
-    'tiempo_total': [639.0999, 465.5577, 461.2016],  # Total Time (s) - DATOS REALES
-    'tiempo_fase1': [156.2616, 159.2107, 142.4887],  # Time Phase 1 (s)
-    'tiempo_fase2': [482.8383, 306.3469, 318.7129],  # Time Phase 2 (s)
-    'io_total': [53344, 40008, 40008],     # I/O Total (pages) - DATOS REALES
-    'runs_generated': [417, 209, 105],     # Runs Generated
+    'tiempo_total': [4.0109, 3.3836, 3.1057],       # Total Time (s)
+    'tiempo_fase1': [0.7461, 0.8534, 0.8168],       # Time Phase 1 (s)
+    'tiempo_fase2': [3.2648, 2.5302, 2.2888],       # Time Phase 2 (s)
+    'io_total': [52184, 39138, 39138],              # I/O Total (pages)
+    'runs_generated': [408, 204, 102],              # Runs Generated
 }
 
 

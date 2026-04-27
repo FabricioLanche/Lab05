@@ -2,8 +2,20 @@ import os
 import tempfile
 import time
 import hashlib
+from heap_file import (
+    DepartmentRecord,
+    count_pages,
+    read_page,
+    write_page,
+)
 
-from heap_file import count_pages, get_heap_metadata, read_page, write_page
+_DEPARTMENT_FIELDS = [
+    "page_id",
+    "employee_id",
+    "department_id",
+    "from_date",
+    "to_date",
+]
 
 def _normalize_field_name(field_name: str) -> str:
     return field_name.strip().casefold().replace(" ", "_")
@@ -18,6 +30,8 @@ def _resolve_group_index(fieldnames: list[str], group_key: str) -> int:
         _normalize_field_name(field_name): index 
         for index, field_name in enumerate(fieldnames)
     }
+    if "department_id" in normalized_map and "deparment_id" not in normalized_map:
+        normalized_map["deparment_id"] = normalized_map["department_id"]
 
     if normalized_group_key in normalized_map:
         return normalized_map[normalized_group_key]
@@ -29,11 +43,24 @@ def _resolve_group_index(fieldnames: list[str], group_key: str) -> int:
 def _hash_value(value: object) -> int:
     return int(hashlib.md5(str(value).strip().encode()).hexdigest(), 16)
 
+def _to_text(value: object) -> str:
+    if isinstance(value, bytes):
+        return value.rstrip(b"\x00").decode("utf-8", errors="ignore")
+    return str(value).strip()
+
 def _record_capacity(page_size: int, record_size: int) -> int:
-    capacity = (page_size - 4) // record_size  # 4 bytes for record count header
+    capacity = page_size // record_size
     if capacity <= 0:
         raise ValueError("Invalid page_size/record_size combination")
     return capacity
+
+
+def _build_metadata() -> dict:
+    return {
+        "record_format": DepartmentRecord.RECORD_FORMAT,
+        "record_size": DepartmentRecord.RECORD_SIZE,
+        "fields": _DEPARTMENT_FIELDS,
+    }
 
 
 def _chunk_records(records: list[tuple], chunk_size: int):
@@ -44,13 +71,14 @@ def _chunk_records(records: list[tuple], chunk_size: int):
 # Ademas de retornar la lista de rutas de particiones, se retornara tambien la 
 # cantidad de paginas leidas y escritas durante esta fase, necesarias para la fase 3
 # Asimismo, para la fase 2 se retorna el metadata del heap file para evitar leer nuevamente
-def partition_data( heap_path: str, page_size: int, buffer_size: int, group_key: str) -> tuple[list[str], int, int, dict]:
+def partition_data(
+    heap_path: str,
+    page_size: int,
+    buffer_size: int,
+    group_key: str,
+) -> tuple[list[str], int, int, dict]:
+    metadata = _build_metadata()
 
-    metadata = get_heap_metadata(heap_path)
-    if metadata["page_size"] != page_size:
-        raise ValueError("page_size does not match the input heap file metadata")
-
-    record_format = metadata["record_format"]
     group_index = _resolve_group_index(metadata["fields"], group_key)
     capacity = _record_capacity(page_size, metadata["record_size"])
 
@@ -76,7 +104,7 @@ def partition_data( heap_path: str, page_size: int, buffer_size: int, group_key:
 
     # Fase 1: Leer todas las páginas y distribuir registros a las particiones
     for page_id in range(total_pages):
-        records = read_page(heap_path, page_id, page_size)
+        records = read_page(heap_path, page_id, metadata["record_format"], page_size)
         pages_read += 1
         
         for record in records:
@@ -91,7 +119,7 @@ def partition_data( heap_path: str, page_size: int, buffer_size: int, group_key:
                 partition_paths[partition_id],
                 page_id,
                 chunk,
-                record_format,
+                metadata["record_format"],
                 page_size
             )
             pages_written += 1
@@ -121,15 +149,20 @@ def aggregate_partitions(
          # Leer pagina a pagina y agregar directamente al resultado
 
         for page_id in range(total_pages):
-            for record in read_page(partition_path, page_id, page_size):
-                group_value = str(record[group_index]).strip()
+            for record in read_page(partition_path, page_id, metadata["record_format"], page_size):
+                group_value = _to_text(record[group_index])
                 result[group_value] = result.get(group_value, 0) + 1
             pages_read += 1
 
     return result, pages_read
 
 
-def external_hash_group_by(heap_path: str, page_size: int, buffer_size: int, group_key: str,) -> dict:
+def external_hash_group_by(
+    heap_path: str,
+    page_size: int,
+    buffer_size: int,
+    group_key: str,
+) -> dict:
     start_total = time.perf_counter()
 
     # Fase 1: Particionamiento

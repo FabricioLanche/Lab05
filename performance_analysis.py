@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from heap_file import export_to_heap, get_heap_metadata, count_pages
+from heap_file import DepartmentRecord, EmployeeRecord, export_to_heap, count_pages
 from external_hashing import external_hash_group_by
 from external_sort import external_sort
 
@@ -18,22 +18,20 @@ def setup_data():
     dept_emp_bin = "data/department_employee.bin"
     if not os.path.exists(dept_emp_bin):
         print(f"\n📤 Exportando department_employee.csv → {dept_emp_bin}")
-        export_to_heap("department_employee.csv", dept_emp_bin, "department_employee", page_size)
-    
-    metadata = get_heap_metadata(dept_emp_bin)
+        export_to_heap("data_input/department_employee.csv", dept_emp_bin, DepartmentRecord.RECORD_FORMAT, page_size)
+
     pages = count_pages(dept_emp_bin, page_size)
-    print(f"✓ department_employee: {pages} páginas, {metadata['record_size']} bytes/record")
+    print(f"✓ department_employee: {pages} páginas, {DepartmentRecord.RECORD_SIZE} bytes/record")
     
     # Verificar employee
     employee_bin = "data/employee.bin"
     if not os.path.exists(employee_bin):
         print(f"\n📤 Exportando employee.csv → {employee_bin}")
-        export_to_heap("employee .csv", employee_bin, "employee", page_size)
+        export_to_heap("data_input/employee.csv", employee_bin, EmployeeRecord.RECORD_FORMAT, page_size)
     
     if os.path.exists(employee_bin):
-        metadata = get_heap_metadata(employee_bin)
         pages = count_pages(employee_bin, page_size)
-        print(f"✓ employee: {pages} páginas, {metadata['record_size']} bytes/record")
+        print(f"✓ employee: {pages} páginas, {EmployeeRecord.RECORD_SIZE} bytes/record")
     else:
         print(f"⚠ employee.bin no disponible")
     

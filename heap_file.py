@@ -19,7 +19,7 @@ class EmployeeRecord:
 class DepartmentRecord:
     PAGE_ID: int
     EMPLOYEE_ID: int
-    DEPARMENT_ID: str
+    DEPARTMENT_ID: str
     FROM_DATE: str
     TO_DATE: str
     RECORD_FORMAT: str = '2i10s20s20s'
