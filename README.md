@@ -87,15 +87,7 @@ result = external_sort(
 
 ## Cómo Usar
 
-### **1. Ejecutar example_usage.py para probar External Hashing**
-
-```powershell
-python test_external_hashing.py
-```
-
-Prueba External Hashing con 3 buffer sizes y muestra tabla de rendimiento.
-
-### **2. Ejecutar Análisis Completo (Ambos Algoritmos)**
+### **1. Ejecutar Análisis Completo (Ambos Algoritmos)**
 
 ```powershell
 python performance_analysis.py
@@ -125,17 +117,17 @@ python performance_analysis.py
 ## Interpretación de Resultados
 
 ### External Hashing - Análisis
-- **Phase 1 (Particionamiento)** decrece conforme aumenta buffer: menos particiones (k = B-1) → menos overhead
-- **Phase 2 (Agregación)** aumenta: más datos por partición → tabla hash más grande
-- **I/O Total** prácticamente constante (~7,850 páginas): cada registro se lee una vez en Fase 1, una en Fase 2
-- **Conclusión**: Hashing es **~10x más rápido** que sorting para esta operación (GROUP BY) porque evita comparaciones costosas
+- **Phase 1 (Particionamiento)** disminuye ligeramente al aumentar el buffer (1.55s -> 1.48s), aunque crece el número de particiones (15 -> 63).
+- **Phase 2 (Agregación)** se mantiene baja y también disminuye levemente (0.40s -> 0.35s).
+- **I/O Total** permanece casi constante y con variación pequeña (14226 -> 14278 páginas).
+- **Conclusión**: En este escenario de `GROUP BY from_date`, hashing mantiene buen escalamiento y menor tiempo total.
 
 ### External Sorting - Análisis
-- **Phase 1** relativamente constante (~140-160s): sort en memoria (O(N log N)) es operación CPU-bound
-- **Phase 2 (Multiway Merge)** domina (~300-480s): k-way merge con 15-63 inputs requiere comparaciones continuas
-- **Runs generados**: Decrece con buffer mayor (417 → 105): menos pasadas de merge posteriores
-- **I/O Total** decrece: 53K → 40K páginas, mejora con buffer (menos iteraciones de merge)
-- **Conclusión**: Sorting es más costoso porque cada elemento se compara múltiples veces en las pasadas de merge
+- **Phase 1** es baja y relativamente estable (0.75s, 0.85s, 0.82s).
+- **Phase 2 (Multiway Merge)** sigue siendo la fase dominante, pero mejora al aumentar el buffer (3.26s -> 2.29s).
+- **Runs generados** se reducen a la mitad al duplicar buffer (408 -> 204 -> 102), consistente con TPMMS.
+- **I/O Total** baja de 52184 a 39138 páginas y luego se estabiliza.
+- **Conclusión**: Sorting mejora con más memoria, especialmente por menor costo de merge y menos runs.
 
 ---
 
